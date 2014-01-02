@@ -33,19 +33,17 @@ module.exports = function(options) {
             });
 
             var sourceMapData;
+            var compiledCss = resource.withType('css');
             var cssData = tree.toCSS({
                 sourceMap: true,
+                sourceMapFilename: compiledCss.sourceMapFilename(),
                 writeSourceMap: function writeSourceMap(data) {
                     // this whole pseudo async is somewhat ridiculous
                     sourceMapData = data;
                 }
             });
 
-            var compiledCss = resource.replaceExtension('css').withData(cssData);
-            return [
-                compiledCss,
-                compiledCss.withExtension('map').withData(sourceMapData)
-            ];
+            return compiledCss.withData(cssData).withSourceMap(sourceMapData);
         });
     });
 };
