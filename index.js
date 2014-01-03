@@ -18,6 +18,10 @@ function collectFilenames(node) {
     return files;
 }
 
+function stripSourceMappingComment(source) {
+    return source.replace(/\/[*/][@#]\ssourceMappingURL[^\r\n]*/g, '');
+}
+
 
 module.exports = function(options) {
     return mapEachResource(function(resource, supervisor) {
@@ -43,7 +47,9 @@ module.exports = function(options) {
                 }
             });
 
-            return compiledCss.withData(cssData).withSourceMap(sourceMapData);
+            return compiledCss.
+                withData(stripSourceMappingComment(cssData)).
+                withSourceMap(sourceMapData);
         });
     });
 };
