@@ -23,7 +23,7 @@ module.exports = function(options) {
     return mapEachResource(function(resource, supervisor) {
         // TODO: map extra options (filename, paths, yuicompress, etc)?
         var parser = new less.Parser(extend({}, options, {
-            filename: resource.filename()
+            filename: resource.path().absolute()
         }));
         var parse = q.denodeify(parser.parse.bind(parser));
         return parse(resource.data()).then(function(tree) {
