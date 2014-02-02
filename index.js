@@ -1,4 +1,6 @@
 var mapEachResource = require('plumber').mapEachResource;
+var mercator = require('mercator');
+var SourceMap = mercator.SourceMap;
 
 var q = require('q');
 var less = require('less');
@@ -16,10 +18,6 @@ function collectFilenames(node) {
     }, []);
 
     return files;
-}
-
-function stripSourceMappingComment(source) {
-    return source.replace(/\/[*/][@#]\ssourceMappingURL[^\r\n]*/g, '');
 }
 
 
@@ -47,9 +45,10 @@ module.exports = function(options) {
                 }
             });
 
-            return compiledCss.
-                withData(stripSourceMappingComment(cssData)).
-                withSourceMap(sourceMapData);
+            var data = mercator.stripSourceMappingComment(cssData);
+            var sourceMap = SourceMap.fromMapData(sourceMapData);
+            // FIXME: apply previous source map if any
+            return compiledCss.withData(data, sourceMap);
         });
     });
 };

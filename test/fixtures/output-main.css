@@ -1,0 +1,15 @@
+.other {
+  float: left;
+}
+.other .nested {
+  padding: 10px;
+}
+.parent .child {
+  font-size: 10px;
+}
+.plain {
+  color: red;
+}
+body {
+  margin: 0;
+}
