@@ -24,8 +24,9 @@ function collectFilenames(node) {
 module.exports = function(options) {
     return mapEachResource(function(resource, supervisor) {
         // TODO: map extra options (filename, paths, yuicompress, etc)?
+        var resourcePath = resource.path();
         var parser = new less.Parser(extend({}, options, {
-            filename: resource.path().absolute()
+            filename: resourcePath && resourcePath.absolute()
         }));
         var parse = q.denodeify(parser.parse.bind(parser));
         return parse(resource.data()).then(function(tree) {
