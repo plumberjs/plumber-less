@@ -48,7 +48,14 @@ module.exports = function(options) {
 
             var data = mercator.stripSourceMappingComment(cssData);
             var sourceMap = SourceMap.fromMapData(sourceMapData);
-            // FIXME: apply previous source map if any
+
+            // If the source had a sourcemap, rebase the LESS
+            // sourcemap based on that original map
+            var originalMapData = resource.sourceMap();
+            if (originalMapData) {
+               sourceMap = originalMapData.apply(sourceMap);
+            }
+
             return compiledCss.withData(data, sourceMap);
         });
     });

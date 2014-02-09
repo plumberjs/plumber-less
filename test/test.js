@@ -15,6 +15,7 @@ var fs = require('fs');
 
 var Resource = require('plumber').Resource;
 var Supervisor = require('plumber/lib/util/supervisor');
+var SourceMap = require('mercator').SourceMap;
 
 var less = require('..');
 
@@ -161,5 +162,73 @@ describe('less', function(){
         });
     });
 
-    // TODO: test if input resource has source map, correctly remapped
+    describe('when passed a LESS file with a source map', function() {
+        var transformedResources;
+        var mainData = fs.readFileSync('test/fixtures/concatenated.less').toString();
+        var mainMapData = SourceMap.fromMapData(fs.readFileSync('test/fixtures/concatenated.less.map').toString());
+
+        beforeEach(function() {
+            transformedResources = less()([
+                createResource({path: 'test/fixtures/concatenated.less', type: 'less',
+                                data: mainData, sourceMap: mainMapData})
+            ], supervisor);
+        });
+
+        it('should return a resource with a source map with correct properties from the input source map', function(){
+            return transformedResources.then(function(resources) {
+                var sourceMap = resources[0].sourceMap();
+
+                sourceMap.file.should.equal('concatenated.css');
+                sourceMap.sources.should.deep.equal(mainMapData.sources);
+                sourceMap.sourcesContent.should.deep.equal(mainMapData.sourcesContent);
+            });
+        });
+
+        it('should remap mappings based on the input source map', function() {
+            return transformedResources.then(function(resources) {
+                var map = new SourceMapConsumer(resources[0].sourceMap());
+
+                // TODO: test if input resource has source map, correctly remapped
+                /*
+               1 .one p {
+               2   border: 1;
+               3 }
+               4 .two ul {
+               5   margin: 2px;
+               6 }
+                 */
+                map.originalPositionFor({line: 1, column: 0}).should.deep.equal({
+                    source: 'test/fixtures/1.less',
+                    line: 1,
+                    column: 0,
+                    name: null
+                });
+                map.originalPositionFor({line: 2, column: 0}).should.deep.equal({
+                    source: 'test/fixtures/1.less',
+                    line: 2,
+                    column: 0, // not really tracked, it seems
+                    name: null
+                });
+                map.originalPositionFor({line: 4, column: 0}).should.deep.equal({
+                    source: 'test/fixtures/2.less',
+                    line: 1,
+                    column: 0,
+                    name: null
+                });
+                map.originalPositionFor({line: 5, column: 0}).should.deep.equal({
+                    source: 'test/fixtures/2.less',
+                    line: 2,
+                    column: 0,
+                    name: null
+                });
+            });
+        });
+
+        it('should register no path in the supervisor', function(){
+            return transformedResources.then(function() {
+                supervisor.dependOn.should.not.have.been.called;
+            });
+        });
+
+    });
 });
