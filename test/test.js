@@ -188,7 +188,6 @@ describe('less', function(){
             return transformedResources.then(function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
-                // TODO: test if input resource has source map, correctly remapped
                 /*
                1 .one p {
                2   border: 1;
