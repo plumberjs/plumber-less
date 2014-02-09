@@ -21,7 +21,20 @@ function collectFilenames(node) {
 }
 
 
+// Unwanted minimisation options
+var minimisationOptions = ['compress', 'cleancss'];
+
 module.exports = function(options) {
+    options = options || {};
+
+    // Abort if any illegal option provided
+    minimisationOptions.forEach(function(key) {
+        if (key in options) {
+            throw new Error("The plumber-less operation should not be used to minimise, please use plumber-mincss instead");
+        }
+    });
+
+
     return mapEachResource(function(resource, supervisor) {
         // TODO: map extra options (filename, paths, yuicompress, etc)?
         var resourcePath = resource.path();

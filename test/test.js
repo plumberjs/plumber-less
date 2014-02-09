@@ -41,6 +41,16 @@ describe('less', function(){
         less().should.be.a('function');
     });
 
+    it('should throw an error if passed a minimisation option', function(){
+        (function() {
+            less({compress: true});
+        }).should.throw("The plumber-less operation should not be used to minimise, please use plumber-mincss instead");
+
+        (function() {
+            less({cleancss: true});
+        }).should.throw("The plumber-less operation should not be used to minimise, please use plumber-mincss instead");
+    });
+
     // TODO: test options
 
     describe('when passed a LESS file', function() {
