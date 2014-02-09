@@ -53,6 +53,8 @@ module.exports = function(options) {
             var cssData = tree.toCSS({
                 sourceMap: true,
                 sourceMapFilename: compiledCss.sourceMapFilename(),
+                // fill sourcesContent
+                outputSourceFiles: true,
                 writeSourceMap: function writeSourceMap(data) {
                     // this whole pseudo async is somewhat ridiculous
                     sourceMapData = data;

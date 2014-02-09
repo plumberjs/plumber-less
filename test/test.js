@@ -87,6 +87,12 @@ describe('less', function(){
                     'test/fixtures/plain.css',
                     'test/fixtures/main.less'
                 ]);
+                sourceMap.sourcesContent.should.deep.equal([
+                    "@w: 10px;\n\n.other {\n    float: left;\n\n    .nested {\n        padding: @w;\n    }\n}",
+                    ".child {\n    .parent & {\n        font-size: 10px;\n    }\n}\n",
+                    ".plain {\n    color: red;\n}\n",
+                    "@import \"other\";\n@import \"sub/helper\";\n@import (less) \"plain.css\";\n\nbody {\n    margin: 0;\n}"
+                ]);
             });
         });
 
