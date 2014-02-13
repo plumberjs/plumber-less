@@ -1,4 +1,5 @@
 var mapEachResource = require('plumber').mapEachResource;
+var Report = require('plumber').Report;
 var mercator = require('mercator');
 var SourceMap = mercator.SourceMap;
 
@@ -72,6 +73,19 @@ module.exports = function(options) {
             }
 
             return compiledCss.withData(data, sourceMap);
+        }).catch(function(error) {
+            // Catch and map LESS error
+            return new Report({
+                resource: resource,
+                type: 'error', // FIXME: ?
+                success: false,
+                errors: [{
+                    line:    error.line,
+                    column:  error.column,
+                    message: '[' + error.type + '] ' + error.message,
+                    context: error.extract[1] // FIXME: ?
+                }]
+            });
         });
     });
 };

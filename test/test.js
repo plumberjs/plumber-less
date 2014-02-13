@@ -14,6 +14,7 @@ var fs = require('fs');
 
 
 var Resource = require('plumber').Resource;
+var Report = require('plumber').Report;
 var Supervisor = require('plumber/lib/util/supervisor');
 var SourceMap = require('mercator').SourceMap;
 
@@ -245,5 +246,50 @@ describe('less', function(){
             });
         });
 
+    });
+
+
+    describe('when passed a resource with invalid LESS syntax', function() {
+
+        it('should return an error report if missing closing bracket', function(){
+            var missingClosingBracket = createResource({
+                path: 'test/fixtures/concatenated.less',
+                type: 'less',
+                data: '.foo {'
+            });
+            // transformedResources.should.have.been.rejectedWith();
+            return less()([missingClosingBracket]).then(function(reports) {
+                reports.length.should.equal(1);
+                reports[0].should.be.instanceof(Report);
+                reports[0].writtenResource.should.equal(missingClosingBracket);
+                reports[0].type.should.equal('error');
+                reports[0].success.should.equal(false);
+                reports[0].errors.line.should.equal(1);
+                reports[0].errors.column.should.equal(5);
+                reports[0].errors.message.should.equal('[Parse] missing closing `}`');
+                reports[0].errors.context.should.equal('.foo {');
+            });
+        });
+
+
+        it('should return an error report if using undeclared var', function(){
+            var missingClosingBracket = createResource({
+                path: 'test/fixtures/concatenated.less',
+                type: 'less',
+                data: '.foo {\n  border: @missing;\n}'
+            });
+            // transformedResources.should.have.been.rejectedWith();
+            return less()([missingClosingBracket]).then(function(reports) {
+                reports.length.should.equal(1);
+                reports[0].should.be.instanceof(Report);
+                reports[0].writtenResource.should.equal(missingClosingBracket);
+                reports[0].type.should.equal('error');
+                reports[0].success.should.equal(false);
+                reports[0].errors.line.should.equal(2);
+                reports[0].errors.column.should.equal(10);
+                reports[0].errors.message.should.equal('[Name] variable @missing is undefined');
+                reports[0].errors.context.should.equal('  border: @missing;');
+            });
+        });
     });
 });
