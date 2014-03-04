@@ -44,20 +44,6 @@ function toCSS(tree, sourceMapFilename) {
     });
 }
 
-function lessErrorToReport(error, resource) {
-    return new Report({
-        resource: resource,
-        type: 'error', // FIXME: ?
-        success: false,
-        errors: [{
-            line:    error.line,
-            column:  error.column,
-            message: '[' + error.type + '] ' + error.message,
-            context: error.extract[1] // FIXME: ?
-        }]
-    });
-}
-
 
 // Unwanted minimisation options
 var minimisationOptions = ['compress', 'cleancss'];
@@ -81,6 +67,7 @@ module.exports = function(options) {
         var parser = new less.Parser(extend({}, options, {
             filename: resourcePath && resourcePath.absolute()
         }));
+
         var parse = highland.wrapCallback(parser.parse.bind(parser));
         return parse(resource.data()).flatMap(function(tree) {
             return toCSS(tree, compiledCss.sourceMapFilename());
