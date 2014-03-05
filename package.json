@@ -4,7 +4,7 @@
   "description": "LESS operation for Plumber pipelines",
   "main": "index",
   "dependencies": {
-    "plumber": "~0.3.0"
+    "plumber": "~0.3.0",
     "mercator": "~0.1.4",
     "highland": "~1.16.2",
     "less": "~1.6.1",
