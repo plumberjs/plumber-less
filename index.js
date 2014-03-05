@@ -39,8 +39,9 @@ function toCSS(tree, sourceMapFilename) {
             push(null, {data: cssData, sourceMapData: sourceMapData});
         } catch(e) {
             push(e, null);
+        } finally {
+            push(null, highland.nil);
         }
-        push(null, highland.nil);
     });
 }
 
