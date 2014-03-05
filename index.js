@@ -61,43 +61,46 @@ module.exports = function(options) {
 
 
     // FIXME: restore supervisor?
-    return operation.map(function(resource) {
-        // TODO: map extra options (filename, paths, etc)?
-        var resourcePath = resource.path();
-        var compiledCss = resource.withType('css');
-        var parser = new less.Parser(extend({}, options, {
-            filename: resourcePath && resourcePath.absolute()
-        }));
+    // FIXME: using operation.parallelFlatMap causes tests and examples to fail?
+    return operation(function(resources) {
+        return resources.flatMap(function(resource) {
+            // TODO: map extra options (filename, paths, etc)?
+            var resourcePath = resource.path();
+            var compiledCss = resource.withType('css');
+            var parser = new less.Parser(extend({}, options, {
+                filename: resourcePath && resourcePath.absolute()
+            }));
 
-        var parse = highland.wrapCallback(parser.parse.bind(parser));
-        return parse(resource.data()).flatMap(function(tree) {
-            return toCSS(tree, compiledCss.sourceMapFilename());
-        }).map(function(out) {
-            var data = mercator.stripSourceMappingComment(out.data);
-            var sourceMap = SourceMap.fromMapData(out.sourceMapData);
+            var parse = highland.wrapCallback(parser.parse.bind(parser));
+            return parse(resource.data()).flatMap(function(tree) {
+                return toCSS(tree, compiledCss.sourceMapFilename());
+            }).map(function(out) {
+                var data = mercator.stripSourceMappingComment(out.data);
+                var sourceMap = SourceMap.fromMapData(out.sourceMapData);
 
-            // If the source had a sourcemap, rebase the LESS
-            // sourcemap based on that original map
-            var originalMapData = resource.sourceMap();
-            if (originalMapData) {
-               sourceMap = originalMapData.apply(sourceMap);
-            }
+                // If the source had a sourcemap, rebase the LESS
+                // sourcemap based on that original map
+                var originalMapData = resource.sourceMap();
+                if (originalMapData) {
+                    sourceMap = originalMapData.apply(sourceMap);
+                }
 
-            return compiledCss.withData(data, sourceMap);
-        }).errors(function(error, push) {
-            // Catch and map LESS error
-            var errorReport = new Report({
-                resource: resource,
-                type: 'error', // FIXME: ?
-                success: false,
-                errors: [{
-                    line:    error.line,
-                    column:  error.column,
-                    message: '[' + error.type + '] ' + error.message,
-                    context: error.extract[1] // FIXME: ?
-                }]
+                return compiledCss.withData(data, sourceMap);
+            }).errors(function(error, push) {
+                // Catch and map LESS error
+                var errorReport = new Report({
+                    resource: resource,
+                    type: 'error', // FIXME: ?
+                    success: false,
+                    errors: [{
+                        line:    error.line,
+                        column:  error.column,
+                        message: '[' + error.type + '] ' + error.message,
+                        context: error.extract[1] // FIXME: ?
+                    }]
+                });
+                push(null, errorReport);
             });
-            push(null, errorReport);
         });
     });
 };
