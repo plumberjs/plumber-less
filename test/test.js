@@ -10,6 +10,8 @@ var fs = require('fs');
 
 
 var runOperation = require('plumber-util-test').runOperation;
+var completeWithResources = require('plumber-util-test').completeWithResources;
+var runAndCompleteWith = require('plumber-util-test').runAndCompleteWith;
 
 var Resource = require('plumber').Resource;
 var Report = require('plumber').Report;
@@ -20,6 +22,10 @@ var less = require('..');
 
 function createResource(params) {
     return new Resource(params);
+}
+
+function resourcesError() {
+  chai.assert(false, "error in resources observable");
 }
 
 
@@ -63,23 +69,21 @@ describe('less', function(){
         });
 
         it('should return a single resource with a CSS filename', function(done){
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources.length.should.equal(1);
                 resources[0].filename().should.equal('main.css');
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return a resource with CSS data', function(done){
             var outputMain = fs.readFileSync('test/fixtures/output-main.css').toString();
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 resources[0].data().should.equal(outputMain);
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return a resource with a source map with correct properties', function(done){
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var sourceMap = resources[0].sourceMap();
                 sourceMap.file.should.equal('main.css');
                 sourceMap.sources.should.deep.equal([
@@ -94,13 +98,11 @@ describe('less', function(){
                     ".plain {\n    color: red;\n}\n",
                     "@import \"other\";\n@import \"sub/helper\";\n@import (less) \"plain.css\";\n\nbody {\n    margin: 0;\n}"
                 ]);
-
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should return a resource with a source map with correct mappings', function(done){
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
                 /*
@@ -168,20 +170,17 @@ describe('less', function(){
                     column: 4,
                     name: null
                 });
-
-                done();
-            });
+            }, resourcesError, done);
         });
 
         // FIXME: restore Supervisor
         it.skip('should register all the imported files into the supervisor', function(done){
-            return transformedResources.toArray(function() {
+            completeWithResources(transformedResources, function() {
                 supervisor.dependOn.should.have.callCount(3);
                 supervisor.dependOn.should.have.been.calledWith('test/fixtures/other.less');
                 supervisor.dependOn.should.have.been.calledWith('test/fixtures/sub/helper.less');
                 supervisor.dependOn.should.have.been.calledWith('test/fixtures/plain.css');
-                done();
-            });
+            }, resourcesError, done);
         });
     });
 
@@ -198,18 +197,17 @@ describe('less', function(){
         });
 
         it('should return a resource with a source map with correct properties from the input source map', function(done){
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var sourceMap = resources[0].sourceMap();
 
                 sourceMap.file.should.equal('concatenated.css');
                 sourceMap.sources.should.deep.equal(mainMapData.sources);
                 sourceMap.sourcesContent.should.deep.equal(mainMapData.sourcesContent);
-                done();
-            });
+            }, resourcesError, done);
         });
 
         it('should remap mappings based on the input source map', function(done) {
-            return transformedResources.toArray(function(resources) {
+            completeWithResources(transformedResources, function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
                 /*
@@ -244,17 +242,14 @@ describe('less', function(){
                     column: 0,
                     name: null
                 });
-
-                done();
-            });
+            }, resourcesError, done);
         });
 
         // FIXME: restore Supervisor?
         it.skip('should register no path in the supervisor', function(done){
-            return transformedResources.toArray(function() {
+            completeWithResources(transformedResources, function() {
                 supervisor.dependOn.should.not.have.been.called;
-                done();
-            });
+            }, resourcesError, done);
         });
 
     });
@@ -269,7 +264,7 @@ describe('less', function(){
                 data: '.foo {'
             });
 
-            return runOperation(less(), [missingClosingBracket]).resources.toArray(function(reports) {
+            runAndCompleteWith(less(), [missingClosingBracket], function(reports) {
                 reports.length.should.equal(1);
                 reports[0].should.be.instanceof(Report);
                 reports[0].writtenResource.should.equal(missingClosingBracket);
@@ -279,8 +274,7 @@ describe('less', function(){
                 reports[0].errors[0].column.should.equal(5);
                 reports[0].errors[0].message.should.equal('[Parse] missing closing `}`');
                 reports[0].errors[0].context.should.equal('.foo {');
-                done();
-            });
+            }, resourcesError, done);
         });
 
 
@@ -291,7 +285,7 @@ describe('less', function(){
                 data: '.foo {\n  border: @missing;\n}'
             });
 
-            return runOperation(less(), [missingClosingBracket]).resources.toArray(function(reports) {
+            runAndCompleteWith(less(), [missingClosingBracket], function(reports) {
                 reports.length.should.equal(1);
                 reports[0].should.be.instanceof(Report);
                 reports[0].writtenResource.should.equal(missingClosingBracket);
@@ -301,8 +295,7 @@ describe('less', function(){
                 reports[0].errors[0].column.should.equal(10);
                 reports[0].errors[0].message.should.equal('[Name] variable @missing is undefined');
                 reports[0].errors[0].context.should.equal('  border: @missing;');
-                done();
-            });
+            }, resourcesError, done);
         });
     });
 });
