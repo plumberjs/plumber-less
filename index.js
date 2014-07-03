@@ -1,9 +1,9 @@
 var operation = require('plumber').operation;
 var Report = require('plumber').Report;
+var Rx = require('plumber').Rx;
 var mercator = require('mercator');
 var SourceMap = mercator.SourceMap;
 
-var highland = require('highland');
 var less = require('less');
 var extend = require('extend');
 
@@ -21,9 +21,9 @@ function collectFilenames(node) {
     return files;
 }
 
-// Wrap `toCSS' to return the value as a highland stream (or error)
+// Wrap `toCSS' to return the value as an Observable
 function toCSS(tree, sourceMapFilename) {
-    return highland(function(push, next) {
+    return Rx.Observable.defer(function(push, next) {
         try {
             var sourceMapData;
             var cssData = tree.toCSS({
@@ -36,11 +36,9 @@ function toCSS(tree, sourceMapFilename) {
                     sourceMapData = data;
                 }
             });
-            push(null, {data: cssData, sourceMapData: sourceMapData});
+            return Rx.Observable.return({data: cssData, sourceMapData: sourceMapData});
         } catch(e) {
-            push(e, null);
-        } finally {
-            push(null, highland.nil);
+            return Rx.Observable.throw(e);
         }
     });
 }
@@ -71,7 +69,7 @@ module.exports = function(options) {
                 filename: resourcePath && resourcePath.absolute()
             }));
 
-            var parse = highland.wrapCallback(parser.parse.bind(parser));
+            var parse = Rx.Node.fromNodeCallback(parser.parse.bind(parser));
             return parse(resource.data()).flatMap(function(tree) {
                 return toCSS(tree, compiledCss.sourceMapFilename());
             }).map(function(out) {
@@ -86,7 +84,7 @@ module.exports = function(options) {
                 }
 
                 return compiledCss.withData(data, sourceMap);
-            }).errors(function(error, push) {
+            }).catch(function(error) {
                 // Catch and map LESS error
                 var errorReport = new Report({
                     resource: resource,
@@ -99,7 +97,7 @@ module.exports = function(options) {
                         context: error.extract[1] // FIXME: ?
                     }]
                 });
-                push(null, errorReport);
+                return Rx.Observable.return(errorReport);
             });
         });
     });
