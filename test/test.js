@@ -24,8 +24,8 @@ function createResource(params) {
     return new Resource(params);
 }
 
-function resourcesError() {
-  chai.assert(false, "error in resources observable");
+function resourcesError(e) {
+  chai.assert(false, "error in resources observable" + e.stack);
 }
 
 
@@ -65,11 +65,11 @@ describe('less', function(){
         beforeEach(function() {
             transformedResources = runOperation(less(), [
                 createResource({path: 'test/fixtures/main.less', type: 'less', data: mainData})
-            ]).resources;
+            ], 1).resources;
         });
 
         it('should return a single resource with a CSS filename', function(done){
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 resources.length.should.equal(1);
                 resources[0].filename().should.equal('main.css');
             }, resourcesError, done);
@@ -77,13 +77,13 @@ describe('less', function(){
 
         it('should return a resource with CSS data', function(done){
             var outputMain = fs.readFileSync('test/fixtures/output-main.css').toString();
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 resources[0].data().should.equal(outputMain);
             }, resourcesError, done);
         });
 
         it('should return a resource with a source map with correct properties', function(done){
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 var sourceMap = resources[0].sourceMap();
                 sourceMap.file.should.equal('main.css');
                 sourceMap.sources.should.deep.equal([
@@ -102,7 +102,7 @@ describe('less', function(){
         });
 
         it('should return a resource with a source map with correct mappings', function(done){
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
                 /*
@@ -197,7 +197,7 @@ describe('less', function(){
         });
 
         it('should return a resource with a source map with correct properties from the input source map', function(done){
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 var sourceMap = resources[0].sourceMap();
 
                 sourceMap.file.should.equal('concatenated.css');
@@ -207,7 +207,7 @@ describe('less', function(){
         });
 
         it('should remap mappings based on the input source map', function(done) {
-            completeWithResources(transformedResources, function(resources) {
+            completeWithResources(transformedResources.take(1), function(resources) {
                 var map = new SourceMapConsumer(resources[0].sourceMap());
 
                 /*
@@ -278,7 +278,7 @@ describe('less', function(){
         });
 
 
-        it('should return an error report if using undeclared var', function(done){
+        it.only('should return an error report if using undeclared var', function(done){
             var missingClosingBracket = createResource({
                 path: 'test/fixtures/concatenated.less',
                 type: 'less',
