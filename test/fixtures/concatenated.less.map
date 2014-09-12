@@ -1,1 +1,1 @@
-{"version":3,"file":"concatenated.less","mappings":"AAAA;AACA;AACA;AACA;AACA;AACA;ACLA;AACA;AACA;AACA;AACA;AACA","sources":["test/fixtures/1.less","test/fixtures/2.less"],"sourcesContent":[".one {\n    p {\n        border: 1;\n    }\n}\n",".two {\n    ul {\n        margin: 2px;\n    }\n}\n"],"names":[]}
+{"version":3,"file":"concatenated.less","mappings":"AAAA;AACA;AACA;AACA;AACA;AACA;ACLA;AACA;AACA;AACA;AACA;AACA","sources":["1.less","2.less"],"sourcesContent":[".one {\n    p {\n        border: 1;\n    }\n}\n",".two {\n    ul {\n        margin: 2px;\n    }\n}\n"],"names":[]}
