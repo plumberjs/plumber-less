@@ -94,7 +94,7 @@ module.exports = function(options) {
                         line:    error.line,
                         column:  error.column,
                         message: '[' + error.type + '] ' + error.message,
-                        context: error.extract[1] // FIXME: ?
+                        context: error.extract && error.extract[1] // FIXME: ?
                     }]
                 });
                 return Rx.Observable.return(errorReport);
