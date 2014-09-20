@@ -1,6 +1,6 @@
 {
   "name": "plumber-less",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "LESS operation for Plumber pipelines",
   "main": "index",
   "dependencies": {
