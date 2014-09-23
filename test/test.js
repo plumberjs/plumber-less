@@ -219,25 +219,25 @@ describe('less', function(){
                6 }
                  */
                 map.originalPositionFor({line: 1, column: 0}).should.deep.equal({
-                    source: 'test/fixtures/1.less',
+                    source: '1.less',
                     line: 1,
                     column: 0,
                     name: null
                 });
                 map.originalPositionFor({line: 2, column: 2}).should.deep.equal({
-                    source: 'test/fixtures/1.less',
+                    source: '1.less',
                     line: 3,
                     column: 0, // not really tracked, it seems
                     name: null
                 });
                 map.originalPositionFor({line: 4, column: 0}).should.deep.equal({
-                    source: 'test/fixtures/2.less',
+                    source: '2.less',
                     line: 1,
                     column: 0,
                     name: null
                 });
                 map.originalPositionFor({line: 5, column: 2}).should.deep.equal({
-                    source: 'test/fixtures/2.less',
+                    source: '2.less',
                     line: 3,
                     column: 0,
                     name: null
